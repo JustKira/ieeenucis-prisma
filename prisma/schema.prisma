@@ -1,0 +1,197 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id                   BigInt               @id @default(autoincrement())
+    uid                  String               @unique @db.Uuid
+    email                String               @unique
+    firstname            String
+    lastname             String
+    phonenumber          String               @unique
+    score                Int                  @default(0)
+    userRole             UserRole[]
+    Task                 Task[]
+    UserTask             UserTask[]
+    IssuerScoreHistory   ScoreHistory[]       @relation("issuer_SH")
+    ReceiverScoreHistory ScoreHistory[]       @relation("receiver_SH")
+    OpportunityRequest   OpportunityRequest[]
+    UserNotification     UserNotification[]
+
+    @@unique([firstname, lastname])
+}
+
+model Role {
+    id          BigInt     @id @default(autoincrement())
+    name        String     @unique
+    permissions String[]
+    userRole    UserRole[]
+}
+
+model UserRole {
+    id     BigInt @id @default(autoincrement())
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId BigInt
+    role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    roleId BigInt
+
+    @@unique([userId, roleId])
+}
+
+model Task {
+    id              BigInt            @id @default(autoincrement())
+    title           String
+    description     String
+    points          Int               @default(0)
+    dueDate         DateTime
+    createdAt       DateTime
+    allowUpload     Boolean           @default(false)
+    issuer          User              @relation(fields: [issuerId], references: [id])
+    issuerId        BigInt
+    UserTask        UserTask[]
+    OpportunityTask OpportunityTask[]
+    TaskTag         TaskTag[]
+    dupped          Boolean           @default(false)
+}
+
+model Tag {
+    id      BigInt    @id @default(autoincrement())
+    name    String    @unique
+    color   String
+    TaskTag TaskTag[]
+}
+
+model TaskTag {
+    id     BigInt @id @default(autoincrement())
+    task   Task   @relation(fields: [taskId], references: [id])
+    taskId BigInt
+    tag    Tag    @relation(fields: [tagId], references: [id])
+    tagId  BigInt
+}
+
+model UserTask {
+    id                 BigInt               @id @default(autoincrement())
+    finished           Boolean              @default(false)
+    approved           Boolean              @default(false)
+    user               User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId             BigInt
+    task               Task                 @relation(fields: [taskId], references: [id], onDelete: Cascade)
+    taskId             BigInt
+    UserTaskUploadFile UserTaskUploadFile[]
+
+    @@unique([userId, taskId])
+}
+
+model UploadFile {
+    id                 BigInt               @id @default(autoincrement())
+    type               String
+    download           String
+    fileName           String
+    UserTaskUploadFile UserTaskUploadFile[]
+}
+
+model UserTaskUploadFile {
+    id           BigInt     @id @default(autoincrement())
+    uploadFile   UploadFile @relation(fields: [uploadFileId], references: [id])
+    uploadFileId BigInt
+    userTask     UserTask   @relation(fields: [userTaskId], references: [id])
+    userTaskId   BigInt
+}
+
+model Opportunity {
+    id                 BigInt               @id @default(autoincrement())
+    title              String
+    description        String
+    deadline           String
+    OpportunityTask    OpportunityTask[]
+    OpportunityRequest OpportunityRequest[]
+}
+
+model OpportunityRequest {
+    id            BigInt      @id @default(autoincrement())
+    opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+    opportunityId BigInt
+    user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId        BigInt
+    approved      Boolean     @default(false)
+}
+
+model OpportunityTask {
+    id            BigInt      @id @default(autoincrement())
+    task          Task        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+    taskId        BigInt
+    opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+    opportunityId BigInt
+}
+
+model ScoreHistory {
+    id         BigInt   @id @default(autoincrement())
+    issuer     User?    @relation("issuer_SH", fields: [issuerId], references: [id], onDelete: SetNull)
+    receiver   User?    @relation("receiver_SH", fields: [receiverId], references: [id], onDelete: Cascade)
+    date       DateTime
+    reason     String?
+    ammount    Int
+    issuerId   BigInt?
+    receiverId BigInt
+}
+
+model KaggleCompetitionLeaderboard {
+    id                Int     @id @default(autoincrement())
+    name              String
+    competitionId     String  @unique
+    user              String
+    token             String
+    reward            Int     @default(3)
+    rewardDescription String  @default("Reward Tooltip")
+    completed         Boolean @default(false)
+}
+
+model KaggleCompetitionRecord {
+    id            Int    @id @default(autoincrement())
+    competitionId String @unique
+    record        Json
+}
+
+model Notification {
+    id               BigInt             @id @default(autoincrement())
+    title            String
+    description      String
+    UserNotification UserNotification[]
+}
+
+model UserNotification {
+    id             BigInt       @id @default(autoincrement())
+    user           User         @relation(fields: [userId], references: [id])
+    userId         BigInt
+    notification   Notification @relation(fields: [notificationId], references: [id])
+    notificationId BigInt
+}
+
+model Quiz {
+    id            BigInt          @id @default(autoincrement())
+    startAt       DateTime
+    endAt         DateTime
+    duration      Int
+    QuizQuestions QuizQuestions[]
+}
+
+model QuizQuestions {
+    id         BigInt   @id @default(autoincrement())
+    quiz       Quiz     @relation(fields: [quizId], references: [id])
+    question   Question @relation(fields: [questionId], references: [id])
+    quizId     BigInt
+    questionId BigInt
+}
+
+model Question {
+    id            BigInt          @id @default(autoincrement())
+    question      String
+    answer        String
+    choices       String[]
+    QuizQuestions QuizQuestions[]
+}
