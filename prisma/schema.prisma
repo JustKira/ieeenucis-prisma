@@ -262,9 +262,18 @@ model QuestionsCollectionQuestions {
 model Question {
     id                           BigInt                         @id @default(autoincrement())
     question                     String
-    answers                      Json
+    questionType                 QuestionTypes
+    questionObject               Json
     QuestionsCollectionQuestions QuestionsCollectionQuestions[]
     QuizQuestions                QuizQuestions[]
+
+    @@schema("quizzy")
+}
+
+enum QuestionTypes {
+    MSQ
+    TF
+    CODE
 
     @@schema("quizzy")
 }
