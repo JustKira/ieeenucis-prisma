@@ -1,10 +1,12 @@
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
+    schemas  = ["public", "quizzy"]
 }
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["multiSchema"]
 }
 
 model User {
@@ -22,8 +24,10 @@ model User {
     ReceiverScoreHistory ScoreHistory[]       @relation("receiver_SH")
     OpportunityRequest   OpportunityRequest[]
     UserNotification     UserNotification[]
+    UserQuiz             UserQuiz[]
 
     @@unique([firstname, lastname])
+    @@schema("public")
 }
 
 model Role {
@@ -31,6 +35,8 @@ model Role {
     name        String     @unique
     permissions String[]
     userRole    UserRole[]
+
+    @@schema("public")
 }
 
 model UserRole {
@@ -41,6 +47,7 @@ model UserRole {
     roleId BigInt
 
     @@unique([userId, roleId])
+    @@schema("public")
 }
 
 model Task {
@@ -57,6 +64,8 @@ model Task {
     OpportunityTask OpportunityTask[]
     TaskTag         TaskTag[]
     dupped          Boolean           @default(false)
+
+    @@schema("public")
 }
 
 model Tag {
@@ -64,6 +73,8 @@ model Tag {
     name    String    @unique
     color   String
     TaskTag TaskTag[]
+
+    @@schema("public")
 }
 
 model TaskTag {
@@ -72,6 +83,8 @@ model TaskTag {
     taskId BigInt
     tag    Tag    @relation(fields: [tagId], references: [id])
     tagId  BigInt
+
+    @@schema("public")
 }
 
 model UserTask {
@@ -85,6 +98,7 @@ model UserTask {
     UserTaskUploadFile UserTaskUploadFile[]
 
     @@unique([userId, taskId])
+    @@schema("public")
 }
 
 model UploadFile {
@@ -93,6 +107,8 @@ model UploadFile {
     download           String
     fileName           String
     UserTaskUploadFile UserTaskUploadFile[]
+
+    @@schema("public")
 }
 
 model UserTaskUploadFile {
@@ -101,6 +117,8 @@ model UserTaskUploadFile {
     uploadFileId BigInt
     userTask     UserTask   @relation(fields: [userTaskId], references: [id])
     userTaskId   BigInt
+
+    @@schema("public")
 }
 
 model Opportunity {
@@ -110,6 +128,8 @@ model Opportunity {
     deadline           String
     OpportunityTask    OpportunityTask[]
     OpportunityRequest OpportunityRequest[]
+
+    @@schema("public")
 }
 
 model OpportunityRequest {
@@ -119,6 +139,8 @@ model OpportunityRequest {
     user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId        BigInt
     approved      Boolean     @default(false)
+
+    @@schema("public")
 }
 
 model OpportunityTask {
@@ -127,6 +149,8 @@ model OpportunityTask {
     taskId        BigInt
     opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
     opportunityId BigInt
+
+    @@schema("public")
 }
 
 model ScoreHistory {
@@ -138,6 +162,8 @@ model ScoreHistory {
     ammount    Int
     issuerId   BigInt?
     receiverId BigInt
+
+    @@schema("public")
 }
 
 model KaggleCompetitionLeaderboard {
@@ -149,12 +175,16 @@ model KaggleCompetitionLeaderboard {
     reward            Int     @default(3)
     rewardDescription String  @default("Reward Tooltip")
     completed         Boolean @default(false)
+
+    @@schema("public")
 }
 
 model KaggleCompetitionRecord {
     id            Int    @id @default(autoincrement())
     competitionId String @unique
     record        Json
+
+    @@schema("public")
 }
 
 model Notification {
@@ -162,6 +192,8 @@ model Notification {
     title            String
     description      String
     UserNotification UserNotification[]
+
+    @@schema("public")
 }
 
 model UserNotification {
@@ -170,14 +202,20 @@ model UserNotification {
     userId         BigInt
     notification   Notification @relation(fields: [notificationId], references: [id])
     notificationId BigInt
+
+    @@schema("public")
 }
 
 model Quiz {
     id            BigInt          @id @default(autoincrement())
-    startAt       DateTime
-    endAt         DateTime
+    quizName      String
+    startDate     DateTime
+    endDate       DateTime
     duration      Int
     QuizQuestions QuizQuestions[]
+    UserQuiz      UserQuiz[]
+
+    @@schema("quizzy")
 }
 
 model QuizQuestions {
@@ -186,12 +224,47 @@ model QuizQuestions {
     question   Question @relation(fields: [questionId], references: [id])
     quizId     BigInt
     questionId BigInt
+
+    @@schema("quizzy")
+}
+
+model UserQuiz {
+    id          BigInt @id @default(autoincrement())
+    quiz        Quiz   @relation(fields: [quizId], references: [id])
+    user        User   @relation(fields: [userId], references: [id])
+    answers     Json
+    quizId      BigInt
+    userId      BigInt
+    autoGrade   Int
+    manualGrade Int
+
+    @@schema("quizzy")
+}
+
+model QuestionsCollection {
+    id                           BigInt                         @id @default(autoincrement())
+    collectionName               String
+    QuestionsCollectionQuestions QuestionsCollectionQuestions[]
+
+    @@schema("quizzy")
+}
+
+model QuestionsCollectionQuestions {
+    id                    BigInt              @id @default(autoincrement())
+    questionsCollection   QuestionsCollection @relation(fields: [questionsCollectionId], references: [id])
+    question              Question            @relation(fields: [questionId], references: [id])
+    questionsCollectionId BigInt
+    questionId            BigInt
+
+    @@schema("quizzy")
 }
 
 model Question {
-    id            BigInt          @id @default(autoincrement())
-    question      String
-    answer        String
-    choices       String[]
-    QuizQuestions QuizQuestions[]
+    id                           BigInt                         @id @default(autoincrement())
+    question                     String
+    answers                      Json
+    QuestionsCollectionQuestions QuestionsCollectionQuestions[]
+    QuizQuestions                QuizQuestions[]
+
+    @@schema("quizzy")
 }
