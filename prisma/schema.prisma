@@ -261,8 +261,6 @@ model QuestionsCollectionQuestions {
 
 model Question {
     id                           BigInt                         @id @default(autoincrement())
-    question                     String
-    questionType                 QuestionTypes
     questionObject               Json
     QuestionsCollectionQuestions QuestionsCollectionQuestions[]
     QuizQuestions                QuizQuestions[]
