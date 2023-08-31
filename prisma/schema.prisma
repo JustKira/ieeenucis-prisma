@@ -277,28 +277,31 @@ enum QuestionTypes {
 }
 
 model FallenFutureAccount {
-    id       String            @id @db.Uuid
-    username String
-    ranks    FallenFutureRanks @default(NOVICE_STRATEGIST)
-    score    Int
+    id         String            @id @db.Uuid
+    username   String
+    ranks      FallenFutureRanks @default(NOVICE_STRATEGIST)
+    score      Int
+    PlayerCard PlayerCard[]
 
     @@schema("fallenfuture")
 }
 
 model PlayerCard {
-    id            BigInt    @id @default(autoincrement())
+    id                    BigInt              @id @default(autoincrement())
+    account               FallenFutureAccount @relation(fields: [fallenFutureAccountId], references: [id])
     //this will be used to refrence card design and skills from our localcards.
-    inheritanceId Int
-    name          String
-    troopType     TroopType
-    hp            Int
-    armor         Int
-    shield        Int
-    attackPower   Int
-    attackRange   Int
-    movement      Int
-    power         Int
-    rarity        Rarity
+    inheritanceId         Int
+    name                  String
+    troopType             TroopType
+    hp                    Float
+    armor                 Float
+    shield                Float
+    attackPower           Float
+    attackRange           Float
+    movement              Float
+    power                 Float
+    rarity                Rarity
+    fallenFutureAccountId String              @db.Uuid
 
     @@schema("fallenfuture")
 }
@@ -322,6 +325,14 @@ enum TroopType {
     TROOPERS
     MEDICS
     ASSASSINS
+
+    @@schema("fallenfuture")
+}
+
+enum Faction {
+    AZURE_VANGUARD
+    CRIMSON_SKIES
+    ASTRAL_NEXUS
 
     @@schema("fallenfuture")
 }
