@@ -1,7 +1,7 @@
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
-    schemas  = ["public", "quizzy"]
+    schemas  = ["public", "quizzy", "fallenfuture"]
 }
 
 generator client {
@@ -274,4 +274,65 @@ enum QuestionTypes {
     CODE
 
     @@schema("quizzy")
+}
+
+model FallenFutureAccount {
+    id       String            @id @db.Uuid
+    username String
+    ranks    FallenFutureRanks @default(NOVICE_STRATEGIST)
+    score    Int
+
+    @@schema("fallenfuture")
+}
+
+model PlayerCard {
+    id            BigInt    @id @default(autoincrement())
+    //this will be used to refrence card design and skills from our localcards.
+    inheritanceId Int
+    name          String
+    troopType     TroopType
+    hp            Int
+    armor         Int
+    shield        Int
+    attackPower   Int
+    attackRange   Int
+    movement      Int
+    power         Int
+    rarity        Rarity
+
+    @@schema("fallenfuture")
+}
+
+enum FallenFutureRanks {
+    NOVICE_STRATEGIST
+    TACTICAL_ADEPT
+    WAR_STRATEGIST
+    BATTLE_COMMANDER
+    WARLORD
+    WAR_ARCHON
+    SUPREME_GENERAL
+
+    @@schema("fallenfuture")
+}
+
+enum TroopType {
+    AIRFORCE
+    TANKS
+    JUGGERNAUTS
+    TROOPERS
+    MEDICS
+    ASSASSINS
+
+    @@schema("fallenfuture")
+}
+
+enum Rarity {
+    COMMON
+    UNCOMMON
+    RARE
+    EPIC
+    LEGENDARY
+    MYTHICAL
+
+    @@schema("fallenfuture")
 }
