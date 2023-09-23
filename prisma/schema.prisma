@@ -209,11 +209,22 @@ model UserNotification {
 model Quiz {
     id            BigInt          @id @default(autoincrement())
     quizName      String
-    startDate     DateTime
-    endDate       DateTime
-    duration      Int
     QuizQuestions QuizQuestions[]
+    QuizSchedule  QuizSchedule[]
     UserQuiz      UserQuiz[]
+
+    @@schema("quizzy")
+}
+
+model QuizSchedule {
+    id        BigInt     @id @default(autoincrement())
+    name      String     @default("Untitled")
+    startDate DateTime
+    code      String
+    duration  Int
+    UserQuiz  UserQuiz[]
+    Quiz      Quiz       @relation(fields: [quizId], references: [id])
+    quizId    BigInt
 
     @@schema("quizzy")
 }
@@ -229,15 +240,21 @@ model QuizQuestions {
 }
 
 model UserQuiz {
-    id          BigInt @id @default(autoincrement())
-    quiz        Quiz   @relation(fields: [quizId], references: [id])
-    user        User   @relation(fields: [userId], references: [id])
-    answers     Json
-    quizId      BigInt
-    userId      BigInt
-    autoGrade   Int
-    manualGrade Int
+    id             BigInt       @id @default(autoincrement())
+    quizSchedule   QuizSchedule @relation(fields: [quizScheduleId], references: [id])
+    quiz           Quiz         @relation(fields: [quizId], references: [id])
+    user           User         @relation(fields: [userId], references: [id])
+    answers        Json
+    attended       Boolean
+    attendedAt     DateTime?
+    submitted      Boolean      @default(false)
+    quizId         BigInt
+    userId         BigInt
+    autoGrade      Int
+    manualGrade    Int
+    quizScheduleId BigInt
 
+    @@unique([quizScheduleId, userId])
     @@schema("quizzy")
 }
 
@@ -290,9 +307,8 @@ model PlayerCard {
     id                    BigInt              @id @default(autoincrement())
     account               FallenFutureAccount @relation(fields: [fallenFutureAccountId], references: [id])
     //this will be used to refrence card design and skills from our localcards.
-    inheritanceId         Int
-    name                  String
-    troopType             TroopType
+    //string
+    inheritanceId         String
     hp                    Float
     armor                 Float
     shield                Float
@@ -300,6 +316,7 @@ model PlayerCard {
     attackRange           Float
     movement              Float
     power                 Float
+    //note to saif remove later
     rarity                Rarity
     fallenFutureAccountId String              @db.Uuid
 
